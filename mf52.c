@@ -16,43 +16,55 @@ typedef struct {
 
 #define MF52_NUM_POINTS 16
 static temp_vector mf52Points[] = {
-  {-250, 950},
-  {-200, 928},
-  {-150, 900},
-  {-100, 867},
-  {-50,  828},
-  {0,    784},
-  {50,   735},
-  {100,  681},
-  {150,  626},
-  {200,  569},
-  {250,  512},
-  {300,  457},
-  {350,  404},
-  {400,  355},
-  {450,  310},
-  {500,  270},
+  {-250, 950}, // 0
+  {-200, 928}, // 1
+  {-150, 900}, // 2
+  {-100, 867}, // 3
+  {-50,  828}, // 4
+  {0,    784}, // 5
+  {50,   735}, // 6
+  {100,  681}, // 7
+  {150,  626}, // 8
+  {200,  569}, // 9
+  {250,  512}, // 10
+  {300,  457}, // 11
+  {350,  404}, // 12
+  {400,  355}, // 13
+  {450,  310}, // 14
+  {500,  270}, // 15
 };
 
 /*
  * Get temperature from an ADC value
  */
-int16_t getMF52Temp(int16_t adc) {
+int16_t getMF52Temp(uint16_t adc) {
   // find index where adc value is bigger than given value
-  int16_t index = MF52_NUM_POINTS-1;
-  for (int16_t i=0; i<MF52_NUM_POINTS; i++) {
-    if (mf52Points[i].adc > adc) {
+  uint8_t index = MF52_NUM_POINTS-1;
+  for (uint8_t i=0; i<MF52_NUM_POINTS; i++) {
+    if (adc > mf52Points[i].adc) {
       index = i;
       break;
     }
   }
 
+  if (index==0) {
+    return mf52Points[0].temp;
+  } else if (index==(MF52_NUM_POINTS-1)) {
+    return mf52Points[MF52_NUM_POINTS-1].temp;
+  }
+
   int16_t tempStart = mf52Points[index-1].temp;
   int16_t tempEnd = mf52Points[index].temp;
-  int16_t adcStart = mf52Points[index-1].adc;
-  int16_t adcEnd = mf52Points[index].adc;
+  uint16_t adcStart = mf52Points[index-1].adc;
+  uint16_t adcEnd = mf52Points[index].adc;
 
-
-  return tempStart + (tempEnd - tempStart) * (adc - adcStart) / (adcEnd - adcStart);
+  /*
+   * for some reasons it's not possible to calculate
+   * all in one line :-(
+   */
+  int16_t r = (tempEnd - tempStart) * (adc - adcStart);
+  int16_t d = adcEnd - adcStart;
+  r /= d;
+  return tempStart + r;
 }
 
